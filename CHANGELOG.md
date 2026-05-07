@@ -1,5 +1,16 @@
 # Changelog
 
+## [2026-05-07 16:15 HKT] - Architecture Change: Server-side API Proxy (Backend Integration)
+
+### 交付內容 (Delivered Items)
+- ✅ **伺服器端路由 (Server API)**：新增 `server.ts`，實作了 `/api/generate` 的 Express 路由，並將原本前端直接呼叫 Gemini API 的邏輯移至後端執行。
+- ✅ **前端服務重構 (Frontend Service)**：修改 `src/services/aiService.ts`，改為使用 HTTP `POST` 向本地 `/api/generate` 發送請求。
+- ✅ **前端指令更新 (Scripts)**：將 `package.json` 中的啟動與開發指令升級為全端 (Full-Stack) 架構 (`tsx` 與 `node --experimental-strip-types`)。
+
+### 決定與原因 (Decisions & Rationale)
+- **決定**：實施方案二，從純前端架構 (Client-Side) 轉型為全端架構 (Full-Stack Express + Vite)。
+- **原因**：使用者將應用程式部署至 Vercel 等平台時，從特定地區（如香港）的瀏覽器直接呼叫 Gemini API 會遭遇 `User location is not supported for the API use` (HTTP 400) 的地域限制錯誤。將 API 請求移至伺服器端即可透過伺服器所在地區發送請求，從而繞過前端的地理位置限制，確保功能正常運作，同時也提高了 API Key 的安全性。
+
 ## [2026-05-07 14:30 HKT] - Bug Fix: Local Storage Safety Patch
 
 ### 交付內容 (Delivered Items)
