@@ -1,9 +1,5 @@
 import { AppSettings } from '../types';
 import { Ingredient } from '../data/ingredients';
-import { GoogleGenAI } from '@google/genai';
-
-// Initialize the API using the injected environment variable
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export interface MultiLangText {
   zh: string;
@@ -74,15 +70,26 @@ Output EXACTLY as a JSON object with this schema, and nothing else:
 }`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: systemPrompt,
-      config: {
-        responseMimeType: "application/json",
-      }
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompt: systemPrompt })
     });
 
-    const text = response.text;
+    if (!response.ok) {
+      let errorMessage = response.statusText;
+      try {
+        const errJson = await response.json();
+        if (errJson.error) errorMessage = errJson.error;
+      } catch (e) {
+        // Fallback to text if not JSON
+      }
+      throw new Error(errorMessage);
+    }
+
+    const { text } = await response.json();
     if (!text) throw new Error("Empty response from AI");
     
     return JSON.parse(text) as GenerationResponse;
