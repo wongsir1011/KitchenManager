@@ -1,15 +1,16 @@
 # Changelog
 
-## [2026-05-07 16:15 HKT] - Architecture Change: Server-side API Proxy (Backend Integration)
+## [2026-05-07 14:52 HKT] - Bug Fix: API Location Error on Vercel
 
 ### 交付內容 (Delivered Items)
-- ✅ **伺服器端路由 (Server API)**：新增 `server.ts`，實作了 `/api/generate` 的 Express 路由，並將原本前端直接呼叫 Gemini API 的邏輯移至後端執行。
-- ✅ **前端服務重構 (Frontend Service)**：修改 `src/services/aiService.ts`，改為使用 HTTP `POST` 向本地 `/api/generate` 發送請求。
-- ✅ **前端指令更新 (Scripts)**：將 `package.json` 中的啟動與開發指令升級為全端 (Full-Stack) 架構 (`tsx` 與 `node --experimental-strip-types`)。
+- ✅ **全棧架構重構 (Full-Stack Refactor)**：將專案轉換為「Express 後端 + Vite 前端」架構，以解決在 Vercel 部署時因前端瀏覽器位於香港地區而遭到 Gemini API (User location is not supported) 阻擋的問題。
+- ✅ **Vercel Serverless Function**：加入針對 Vercel 自動偵測之 `api/generate.ts`，確保正式發佈時能夠順暢部署至 `iad1` (美國) 節點來呼叫 AI 模型。
+- ✅ **中繼伺服器 (AI Studio Server)**：新建 `server.ts` 提供開發機本地端的 `/api/generate` 處理能力。
+- ✅ **前端呼叫重寫**：`aiService.ts` 由直接在瀏覽器執行 AI 套件，改為透過 `fetch('/api/generate')` 向後端伺服器請求。
 
 ### 決定與原因 (Decisions & Rationale)
-- **決定**：實施方案二，從純前端架構 (Client-Side) 轉型為全端架構 (Full-Stack Express + Vite)。
-- **原因**：使用者將應用程式部署至 Vercel 等平台時，從特定地區（如香港）的瀏覽器直接呼叫 Gemini API 會遭遇 `User location is not supported for the API use` (HTTP 400) 的地域限制錯誤。將 API 請求移至伺服器端即可透過伺服器所在地區發送請求，從而繞過前端的地理位置限制，確保功能正常運作，同時也提高了 API Key 的安全性。
+- **決定**：廢棄純前端直接打 API 的做法，將生成邏輯包裹進 Serverless API。
+- **原因**：香港等部分地區屬於 Gemini API 在前端直連時的受限地理位置。若不經由後端代理，終端使用者在受限地區瀏覽網頁就會噴錯 (400 FAILED_PRECONDITION)。將其改為全棧後端架構，使得呼叫動作從伺服器端 (美國 IP 或合法 Node 節點) 發出，成功規避了這項限制。不但解決了報錯，同時也保障了 API 金鑰的安全性，將敏感環境變數藏於後端。
 
 ## [2026-05-07 14:30 HKT] - Bug Fix: Local Storage Safety Patch
 
