@@ -1,5 +1,14 @@
 # Changelog
 
+## [2026-05-07 14:30 HKT] - Bug Fix: Local Storage Safety Patch
+
+### 交付內容 (Delivered Items)
+- ✅ **安全的存檔讀取 (Safe Parsing)**：在 `App.tsx` 與 `RecipeGen.tsx` 中，為所有存取 `localStorage` 與 `JSON.parse` 的邏輯加上 `try...catch` 區塊與 `Array.isArray` 檢查。
+
+### 決定與原因 (Decisions & Rationale)
+- **決定**：強制要求本機存儲的讀取過程必須涵蓋例外處理 (Exception Handling)。
+- **原因**：為了防止無聲故障 (Silent Failures) 或是當使用者原本的 Cookie/localStorage 遭到外部污染、改寫成不合法的 JSON 格式時，造成 App 整個崩潰白畫面。透過加入 `try...catch`，就算解析失敗也能優雅降級回報預設值，保障了應用程式的穩定性與魯棒性 (Robustness)。
+
 ## [2026-05-07 11:35 HKT] - Feature: Local Storage Persistence
 
 ### 交付內容 (Delivered Items)

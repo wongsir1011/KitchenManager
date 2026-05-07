@@ -13,8 +13,12 @@ interface RecipeGenProps {
 export default function RecipeGen({ settings, selectedIngredients }: RecipeGenProps) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<GenerationResponse | null>(() => {
-    const saved = localStorage.getItem('km_generated_recipe');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('km_generated_recipe');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
   const [error, setError] = useState<string | null>(null);
   
@@ -30,8 +34,13 @@ export default function RecipeGen({ settings, selectedIngredients }: RecipeGenPr
 
   // For the shopping list collaboration
   const [checkedItems, setCheckedItems] = useState<Set<number>>(() => {
-    const saved = localStorage.getItem('km_recipe_checked');
-    return saved ? new Set(JSON.parse(saved)) : new Set();
+    try {
+      const saved = localStorage.getItem('km_recipe_checked');
+      const parsed = saved ? JSON.parse(saved) : [];
+      return new Set(Array.isArray(parsed) ? parsed : []);
+    } catch {
+      return new Set();
+    }
   });
 
   // Persistence Effects

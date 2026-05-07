@@ -16,16 +16,30 @@ export default function App() {
   
   // App State
   const [settings, setSettings] = useState<AppSettings>(() => {
-    const saved = localStorage.getItem('km_settings');
-    return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
+    try {
+      const saved = localStorage.getItem('km_settings');
+      return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
+    } catch {
+      return DEFAULT_SETTINGS;
+    }
   });
   const [selectedIngredients, setSelectedIngredients] = useState<Set<string>>(() => {
-    const saved = localStorage.getItem('km_selectedIngredients');
-    return saved ? new Set(JSON.parse(saved)) : new Set();
+    try {
+      const saved = localStorage.getItem('km_selectedIngredients');
+      const parsed = saved ? JSON.parse(saved) : [];
+      return new Set(Array.isArray(parsed) ? parsed : []);
+    } catch {
+      return new Set();
+    }
   });
   const [customIngredients, setCustomIngredients] = useState<Ingredient[]>(() => {
-    const saved = localStorage.getItem('km_customIngredients');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('km_customIngredients');
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
   });
 
   // Persistence Effects
