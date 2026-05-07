@@ -1,17 +1,5 @@
 # Changelog
 
-## [2026-05-07 14:52 HKT] - Bug Fix: API Location Error on Vercel
-
-### 交付內容 (Delivered Items)
-- ✅ **全棧架構重構 (Full-Stack Refactor)**：將專案轉換為「Express 後端 + Vite 前端」架構，以解決在 Vercel 部署時因前端瀏覽器位於香港地區而遭到 Gemini API (User location is not supported) 阻擋的問題。
-- ✅ **Vercel Serverless Function**：加入針對 Vercel 自動偵測之 `api/generate.ts`，確保正式發佈時能夠順暢部署至 `iad1` (美國) 節點來呼叫 AI 模型。
-- ✅ **中繼伺服器 (AI Studio Server)**：新建 `server.ts` 提供開發機本地端的 `/api/generate` 處理能力。
-- ✅ **前端呼叫重寫**：`aiService.ts` 由直接在瀏覽器執行 AI 套件，改為透過 `fetch('/api/generate')` 向後端伺服器請求。
-
-### 決定與原因 (Decisions & Rationale)
-- **決定**：廢棄純前端直接打 API 的做法，將生成邏輯包裹進 Serverless API。
-- **原因**：香港等部分地區屬於 Gemini API 在前端直連時的受限地理位置。若不經由後端代理，終端使用者在受限地區瀏覽網頁就會噴錯 (400 FAILED_PRECONDITION)。將其改為全棧後端架構，使得呼叫動作從伺服器端 (美國 IP 或合法 Node 節點) 發出，成功規避了這項限制。不但解決了報錯，同時也保障了 API 金鑰的安全性，將敏感環境變數藏於後端。
-
 ## [2026-05-07 14:30 HKT] - Bug Fix: Local Storage Safety Patch
 
 ### 交付內容 (Delivered Items)
