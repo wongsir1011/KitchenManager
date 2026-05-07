@@ -1,5 +1,15 @@
 # Changelog
 
+## [2026-05-07 22:02 HKT] - Architecture Revert: SPA Gemini Integration
+- ✅ **回歸純前端架構 (Reverted to SPA)**：全面遵循 AI Studio 官方 `gemini-api` 技能指南，將 Gemini API 調用從後端 Express 代理移回前端。
+- ✅ **修正 API Key 錯誤**：解決了後端代理時因環境變數注入不全導致的 `API_KEY_INVALID` 報錯。前端調用由 AI Studio 平台自動處理 API Key 注入與地區限制代理 (Proxying)，穩定性更高。
+- ✅ **SDK 與模型規範化**：統一使用 `@google/genai` SDK 與官方推薦模型 `gemini-3-flash-preview`。
+- 🔧 **清理過多依賴**：移除 `express` 與其相關類型定義，簡化專案結構。
+
+## [2026-05-07 21:55 HKT] - Architecture Pivot: Full-stack Express Proxy (Obsolete)
+- ⚠️ *此版本因 API Key 權限與環境變數注入問題已被撤回。*
+- (原本內容：為了解決地區限制導入後端代理...)
+
 ## [2026-05-07 18:08 HKT] - Bug Fix: Multi-page PDF Export
 - ✅ **支援多頁 PDF 匯出**：修復了當食譜內容過長時，PDF 匯出只會裁斷並顯示第一頁的問題。透過計算整個畫面的高度並自動分頁，確保留存的所有內容完整不漏。
 
