@@ -69,6 +69,22 @@ export default function App() {
     setSelectedIngredients(prev => new Set(prev).add(ingredient.id));
   };
 
+  const handleResetInventory = () => {
+    if (confirm('確定要清空所有已選食材及自訂食材嗎？\nAre you sure you want to clear all selected and custom ingredients?')) {
+      setSelectedIngredients(new Set());
+      setCustomIngredients([]);
+      localStorage.removeItem('km_selectedIngredients');
+      localStorage.removeItem('km_customIngredients');
+    }
+  };
+
+  const handleResetSettings = () => {
+    if (confirm('確定要將所有設定恢復為預設值嗎？\nAre you sure you want to reset all settings to defaults?')) {
+      setSettings(DEFAULT_SETTINGS);
+      localStorage.removeItem('km_settings');
+    }
+  };
+
   const getSelectedIngredientObjects = () => {
     return Array.from(selectedIngredients).map(id => {
       let found = INGREDIENTS_DATA.find(i => i.id === id);
@@ -122,12 +138,14 @@ export default function App() {
              onToggle={toggleIngredient}
              customIngredients={customIngredients}
              onAddCustomIngredient={handleAddCustomIngredient}
+             onReset={handleResetInventory}
           />
         </div>
         <div style={{ display: activeTab === 'settings' ? 'block' : 'none' }}>
           <SettingsPanel 
             settings={settings}
             onChange={setSettings}
+            onReset={handleResetSettings}
           />
         </div>
         <div style={{ display: activeTab === 'recipe' ? 'block' : 'none' }}>

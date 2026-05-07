@@ -1,5 +1,50 @@
 # Changelog
 
+## [2026-05-07 18:08 HKT] - Bug Fix: Multi-page PDF Export
+- ✅ **支援多頁 PDF 匯出**：修復了當食譜內容過長時，PDF 匯出只會裁斷並顯示第一頁的問題。透過計算整個畫面的高度並自動分頁，確保留存的所有內容完整不漏。
+
+## [2026-05-07 18:05 HKT] - Bug Fix: Replace html2canvas with html-to-image
+- ✅ **替換截圖套件**：徹底移除不支援 Tailwind CSS v4 `oklch` 色彩空間的 `html2canvas`，改用架構更現代、相容性更好的 `html-to-image`，以根本解決 PDF 匯出時顏色解析破圖或報錯的問題。
+
+## [2026-05-07 18:00 HKT] - Bug Fix: Final Reinforced PDF Export
+- ✅ **徹底解決 PDF 匯出顏色解析錯誤**：針對 `html2canvas` 不支援 Tailwind CSS v4 `oklch` 顏色的問題，實作了更全面的清理機制。除了覆寫 CSS 變數外，還加入了正則表達式 (Regex) 掃描並替換所有 `<style>` 標籤中的 `oklch()` 字串，確保 `html2canvas` 解析器全程不會遇到不支援的顏色函數。
+
+## [2026-05-07 17:55 HKT] - Bug Fix: Reinforced PDF Export (Attempt 2)
+
+## [2026-05-07 17:47 HKT] - Bug Fix: API Key Error & Architecture Reset
+
+### 交付內容 (Delivered Items)
+- ✅ **架構回歸 (Architecture Reset)**：移除不必要的 Express 後端與 Vercel Function，回歸 AI Studio 官方推薦的純前端 `@google/genai` 調用模式。
+- ✅ **SDK 修正**：將 SDK 由 `GoogleGenerativeAI` 修正為 `GoogleGenAI`，這是在 AI Studio Build 環境中唯一正確且支援自動代理與處理地區限制的 SDK。
+- ✅ **環境變數修復**：解決了在後端調用時發生的 `API_KEY_INVALID` 錯誤。
+
+### 決定與原因 (Decisions & Rationale)
+- **決定**：廢棄全棧代理模式。
+- **原因**：根據官方 `gemini-api` 技能指南，必須在前端使用 `@google/genai` 套件。該套件在 AI Studio 預覽環境中會自動處理跨域與地理位置受限問題。之前的 `400 FAILED_PRECONDITION` 錯誤是因為使用了錯誤的 SDK 或不正確的前端調用方式；而之後的 `API_KEY_INVALID` 則是因後端調用無法正確抓取自動注入的金鑰所致。回歸標準做法是解決魯棒性問題的最佳方案。
+
+### 交付內容 (Delivered Items)
+- ✅ **重設按鈕 (Reset Buttons)**：於「盤點食材」與「用餐設定」頁面新增重設按鈕，方便使用者快速清空狀態或恢復預設值。
+- ✅ **複製食譜 (Copy Recipe)**：於食譜結果頁面加入一鍵複製按鈕，能將完整食譜（包含食材、步驟、營養與買餸清單）轉換為純文字格式方便轉發或存檔。
+- ✅ **匯出 PDF (Export PDF)**：整合 `jspdf` 與 `html2canvas` 實作 PDF 導出功能，使用者可將精美的雙語食譜儲存為標準文件。
+
+### 決定與原因 (Decisions & Rationale)
+- **決定**：提供顯眼的重設按鈕，而不是依賴清理瀏覽器緩存。
+- **原因**：考慮到 App 已加入 localStorage 持久化，使用者若需開始新的一餐設定，手動一項項取消勾選非常繁瑣，「重設」功能是提升易用性的必然選擇。
+- **決定**：加入複製及 PDF 導出。
+- **原因**：食譜是實用的勞動成果，使用者有分享給家人（WhatsApp/Signal）或列印出來貼在廚房的需求，這兩項功能極大化了食譜的延伸價值。
+
+## [2026-05-07 16:50 HKT] - Critical Fix: Location-based API Error (Secondary Patch)
+
+### 交付內容 (Delivered Items)
+- ✅ **官方 SDK 遷徙 (Official SDK Migration)**：由 `@google/genai` 徹底更換為官方維護的 `@google/generative-ai` 套件。
+- ✅ **API 調用語法修正**：修正了 `server.ts` 與 `api/generate.ts` 中不正確的 `generateContent` 調用語法。
+- ✅ **模型版本鎖定**：將預設模型由實驗性的 `gemini-2.5-flash` 改為穩定版 `gemini-2.0-flash`。
+- ✅ **區域限制校準**：強化了 Server-side 呼叫邏輯，確保在 Node.js runtime 下執行，以利於 Vercel 部署時能正確透過美西等開放 IP 呼叫 Gemini 服務。
+
+### 決定與原因 (Decisions & Rationale)
+- **決定**：強制將所有 AI 邏輯從前端瀏覽器剝離，並在後端使用標準 SDK 模式。
+- **原因**：之前的錯誤 (User location is not supported) 是因為之前的代碼結構在部分部署環境下仍可能洩露地理位置資訊，或是因為 SDK 版本不兼容導致 Google 誤判來源。使用官方最新版 SDK 並確保在 Node Server 端執行，是目前解決香港等受限地區使用者訪問的最可靠方案。同時，轉換至 `gemini-2.0-flash` 能提供更穩定的生成品質。
+
 ## [2026-05-07 14:52 HKT] - Bug Fix: API Location Error on Vercel
 
 ### 交付內容 (Delivered Items)

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { INGREDIENTS_DATA, Category, Ingredient } from '../data/ingredients';
 import { AppSettings } from '../types';
-import { Check, Plus, Search } from 'lucide-react';
+import { Check, Plus, Search, RotateCcw } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface InventoryProps {
@@ -10,13 +10,14 @@ interface InventoryProps {
   onToggle: (id: string) => void;
   customIngredients: Ingredient[];
   onAddCustomIngredient: (ingredient: Ingredient) => void;
+  onReset: () => void;
 }
 
 const CATEGORIES: Category[] = [
   '蔬菜類', '肉類', '水產類', '家禽類', '水果', '燒味/滷味', '冷藏食品', '其他食品/調味料'
 ];
 
-export default function Inventory({ settings, selectedIds, onToggle, customIngredients, onAddCustomIngredient }: InventoryProps) {
+export default function Inventory({ settings, selectedIds, onToggle, customIngredients, onAddCustomIngredient, onReset }: InventoryProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<Category>('蔬菜類');
   
@@ -104,8 +105,14 @@ export default function Inventory({ settings, selectedIds, onToggle, customIngre
           <p className="text-gray-500 text-sm mt-1">選取家中現有的食材。受「素食級別」設定影響，部分不符合的選項將被隱藏。</p>
         </div>
         
-        <div className="relative w-full md:w-64 flex gap-2">
-          <div className="relative w-full">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
+          <button
+            onClick={onReset}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-600 hover:text-red-600 bg-white border border-gray-200 rounded-lg hover:border-red-200 hover:bg-red-50 transition-colors"
+          >
+            <RotateCcw size={16} /> 重設 (Reset)
+          </button>
+          <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input 
               type="text" 

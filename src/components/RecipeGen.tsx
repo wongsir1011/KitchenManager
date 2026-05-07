@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AppSettings } from '../types';
 import { Ingredient } from '../data/ingredients';
 import { generateRecipes, GenerationResponse, MultiLangText } from '../services/aiService';
-import { ChefHat, ShoppingCart, Loader2, Sparkles, Navigation, Check, Globe } from 'lucide-react';
+import { ChefHat, ShoppingCart, Loader2, Sparkles, Navigation, Check, Globe, Copy, FileDown, CheckCheck } from 'lucide-react';
 import { cn } from '../lib/utils';
+import jsPDF from 'jspdf';
+import * as htmlToImage from 'html-to-image';
 
 interface RecipeGenProps {
   settings: AppSettings;
@@ -21,6 +23,8 @@ export default function RecipeGen({ settings, selectedIngredients }: RecipeGenPr
     }
   });
   const [error, setError] = useState<string | null>(null);
+  const [copying, setCopying] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
   
   // Local language override for seamless switching
   const [displayLang, setDisplayLang] = useState<'zh' | 'en' | 'id'>('zh');
@@ -67,6 +71,68 @@ export default function RecipeGen({ settings, selectedIngredients }: RecipeGenPr
       setError(err.message || '生成失敗，請再試一次。');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCopyRecipe = async () => {
+    if (!data) return;
+    setCopying(true);
+    
+    let text = `今晚食乜餸 Kitchen Manager\n\n`;
+    data.recipes.forEach((r, i) => {
+      text += `【${i+1}. ${getText(r.dishName)}】\n`;
+      text += `已有食材: ${r.ingredients.have.map(h => getText(h)).join(', ')}\n`;
+      text += `需購買: ${r.ingredients.needToBuy.map(n => getText(n)).join(', ') || '無'}\n`;
+      text += `烹飪步驟:\n${r.steps.map((s, idx) => `${idx+1}. ${getText(s)}`).join('\n')}\n`;
+      if (r.tips) text += `Tips: ${getText(r.tips)}\n`;
+      text += `\n`;
+    });
+    
+    if (data.shoppingList.length > 0) {
+      text += `買餸清單 Shopping List:\n${data.shoppingList.map(item => `- ${getBilingualText(item)}`).join('\n')}\n`;
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setTimeout(() => setCopying(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy', err);
+      setCopying(false);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    if (!contentRef.current) return;
+    
+    const element = contentRef.current;
+    try {
+      const imgData = await htmlToImage.toPng(element, {
+        pixelRatio: 2,
+        backgroundColor: '#ffffff'
+      });
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      
+      let heightLeft = pdfHeight;
+      let position = 0;
+      
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+      
+      while (heightLeft > 0) {
+        position -= pageHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      pdf.save('kitchen-manager-recipe.pdf');
+    } catch (err) {
+      console.error('PDF Export failed', err);
+      alert('PDF 匯出失敗，請重試。');
     }
   };
 
@@ -164,16 +230,32 @@ export default function RecipeGen({ settings, selectedIngredients }: RecipeGenPr
                   EN
                 </button>
               </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleCopyRecipe}
+                  className="p-2 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors flex items-center justify-center"
+                  title="Copy Recipe"
+                >
+                  {copying ? <CheckCheck size={20} className="text-green-600" /> : <Copy size={20} />}
+                </button>
+                <button
+                  onClick={handleExportPDF}
+                  className="p-2 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors flex items-center justify-center"
+                  title="Export PDF"
+                >
+                  <FileDown size={20} />
+                </button>
+              </div>
               <button
                 onClick={handleGenerate}
-                className="px-4 py-2 bg-orange-50 text-orange-700 hover:bg-orange-100 rounded-lg text-sm font-bold transition-colors"
+                className="px-4 py-2 bg-orange-50 text-orange-700 hover:bg-orange-100 rounded-lg text-sm font-bold transition-colors shrink-0"
               >
                 ↻ 重新生成
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div ref={contentRef} className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
             
             {/* Recipes Column */}
             <div className="lg:col-span-2 space-y-6">

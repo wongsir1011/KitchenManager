@@ -1,10 +1,11 @@
 import { AppSettings, Difficulty, GeneratorMode, SoupOption, VegetarianLevel } from '../types';
 import { cn } from '../lib/utils';
-import { Users, Flame, UtensilsCrossed, Leaf, CheckSquare, Zap, Globe2 } from 'lucide-react';
+import { Users, Flame, UtensilsCrossed, Leaf, CheckSquare, Zap, Globe2, RotateCcw } from 'lucide-react';
 
 interface SettingsPanelProps {
   settings: AppSettings;
   onChange: (newSettings: AppSettings) => void;
+  onReset: () => void;
 }
 
 const VEGETARIAN_OPTIONS: VegetarianLevel[] = ['無', '蛋奶素', '純素'];
@@ -16,7 +17,7 @@ const COOKING_METHODS = ['快炒', '清蒸', '炆燉', '煎炸', '涼拌', '無�
 const KITCHENWARE = ['明火爐', '電磁爐', '焗爐', '氣炸鍋', '微波爐', '電飯煲'];
 const LANGUAGES = ['中文', 'English', 'Bahasa Indonesia'] as const;
 
-export default function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
+export default function SettingsPanel({ settings, onChange, onReset }: SettingsPanelProps) {
   const update = (key: keyof AppSettings, value: any) => {
     onChange({ ...settings, [key]: value });
   };
@@ -32,9 +33,17 @@ export default function SettingsPanel({ settings, onChange }: SettingsPanelProps
 
   return (
     <div className="space-y-8 max-w-3xl mx-auto">
-      <div>
-        <h2 className="text-2xl font-bold">2. 用餐設定 (Settings)</h2>
-        <p className="text-gray-500 text-sm mt-1">設定您的用餐需求，AI 生成的食譜將嚴格遵守這些條件。</p>
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">2. 用餐設定 (Settings)</h2>
+          <p className="text-gray-500 text-sm mt-1">設定您的用餐需求，AI 生成的食譜將嚴格遵守這些條件。</p>
+        </div>
+        <button
+          onClick={onReset}
+          className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-600 hover:text-red-600 bg-white border border-gray-200 rounded-lg hover:border-red-200 hover:bg-red-50 transition-colors shrink-0"
+        >
+          <RotateCcw size={16} /> 重設 (Reset)
+        </button>
       </div>
 
       <div className="space-y-8 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
