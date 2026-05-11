@@ -1,5 +1,19 @@
 # Changelog
 
+## [2026-05-09 17:04 HKT] - Feature Update: Gemini 2.5 Flash Lite
+- ✅ **食譜生成模型升級**: 根據使用者需求，將生成食譜的 AI 模型由 `gemini-3-flash-preview` 更改為更快速輕量的 `gemini-2.5-flash-lite` 模型。
+
+## [2026-05-09 22:47 HKT] - Bug Fix: Reset Buttons
+- ✅ **修正重設按鈕失效問題**: 由於 iframe 安全性限制會阻擋原生的 `window.confirm`，導致盤點食材與用餐設定頁面的「重設」按鈕點擊無反應。現已替換為自定義的對話框 (Custom Confirm Dialog)，確保重設功能正常運作。
+
+## [2026-05-09 22:42 HKT] - Bug Fix: Clear recipe images
+- ✅ **重置食譜圖片狀態**: 在重新生成食譜時，會自動清除上一份食譜的 AI 圖片與加載狀態。
+
+## [2026-05-09 22:38 HKT] - Feature Update: AI Images, PWA, Cooking Mode
+- ✅ **AI 菜色圖片生成 (Food Image Generation)**: 結合 `gemini-2.5-flash-image` 模型，提供食譜專屬的隨機生成實拍照，增添視覺吸引力與食慾。
+- ✅ **移動端極致優化 (PWA 加持)**: 全面升級為 Progressive Web App (PWA)，支援添加到手機主畫面，在手機上表現如原生 App，提升使用流暢度。
+- ✅ **煮飯模式與防休眠 (Cooking Mode)**: 專為廚房情境打造的全螢幕介面。提供超大字體顯示步驟進度，並啟用 `Screen Wake Lock API` 確保在操作生肉與炒菜時，手機屏幕不會突然休眠變黑。
+
 ## [2026-05-07 22:02 HKT] - Architecture Revert: SPA Gemini Integration
 - ✅ **回歸純前端架構 (Reverted to SPA)**：全面遵循 AI Studio 官方 `gemini-api` 技能指南，將 Gemini API 調用從後端 Express 代理移回前端。
 - ✅ **修正 API Key 錯誤**：解決了後端代理時因環境變數注入不全導致的 `API_KEY_INVALID` 報錯。前端調用由 AI Studio 平台自動處理 API Key 注入與地區限制代理 (Proxying)，穩定性更高。

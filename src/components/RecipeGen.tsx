@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { AppSettings } from '../types';
 import { Ingredient } from '../data/ingredients';
-import { generateRecipes, GenerationResponse, MultiLangText } from '../services/aiService';
-import { ChefHat, ShoppingCart, Loader2, Sparkles, Navigation, Check, Globe, Copy, FileDown, CheckCheck } from 'lucide-react';
+import { generateRecipes, GenerationResponse, MultiLangText, generateRecipeImage } from '../services/aiService';
+import { ChefHat, ShoppingCart, Loader2, Sparkles, Navigation, Check, Globe, Copy, FileDown, CheckCheck, ImagePlus, Play } from 'lucide-react';
 import { cn } from '../lib/utils';
 import jsPDF from 'jspdf';
 import * as htmlToImage from 'html-to-image';
+import CookingMode from './CookingMode';
 
 interface RecipeGenProps {
   settings: AppSettings;
@@ -24,6 +25,9 @@ export default function RecipeGen({ settings, selectedIngredients }: RecipeGenPr
   });
   const [error, setError] = useState<string | null>(null);
   const [copying, setCopying] = useState(false);
+  const [recipeImages, setRecipeImages] = useState<Record<number, string>>({});
+  const [generatingImage, setGeneratingImage] = useState<Record<number, boolean>>({});
+  const [activeCookingRecipe, setActiveCookingRecipe] = useState<number | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   
   // Local language override for seamless switching
@@ -60,6 +64,19 @@ export default function RecipeGen({ settings, selectedIngredients }: RecipeGenPr
     localStorage.setItem('km_recipe_checked', JSON.stringify(Array.from(checkedItems)));
   }, [checkedItems]);
 
+  const handleGenerateImage = async (idx: number, dishName: string) => {
+    setGeneratingImage(prev => ({ ...prev, [idx]: true }));
+    try {
+      const base64Url = await generateRecipeImage(dishName);
+      setRecipeImages(prev => ({ ...prev, [idx]: base64Url }));
+    } catch (err) {
+      console.error(err);
+      alert('圖片生成失敗，請重試。');
+    } finally {
+      setGeneratingImage(prev => ({ ...prev, [idx]: false }));
+    }
+  };
+
   const handleGenerate = async () => {
     setLoading(true);
     setError(null);
@@ -67,6 +84,8 @@ export default function RecipeGen({ settings, selectedIngredients }: RecipeGenPr
       const result = await generateRecipes(settings, selectedIngredients);
       setData(result);
       setCheckedItems(new Set()); // Reset shopping list checkboxes
+      setRecipeImages({});
+      setGeneratingImage({});
     } catch (err: any) {
       setError(err.message || '生成失敗，請再試一次。');
     } finally {
@@ -260,7 +279,31 @@ export default function RecipeGen({ settings, selectedIngredients }: RecipeGenPr
             {/* Recipes Column */}
             <div className="lg:col-span-2 space-y-6">
               {data.recipes.map((recipe, idx) => (
-                <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 overflow-hidden relative">
+                  {/* Generated Image or Placeholder */}
+                  {recipeImages[idx] ? (
+                    <div className="mb-6 -mx-6 -mt-6">
+                      <img src={recipeImages[idx]} alt={getText(recipe.dishName)} className="w-full h-48 sm:h-64 object-cover" referrerPolicy="no-referrer" />
+                    </div>
+                  ) : (
+                    <div className="mb-6 -mx-6 -mt-6 bg-orange-50 h-32 sm:h-48 flex items-center justify-center border-b border-orange-100 flex-col gap-2">
+                      {generatingImage[idx] ? (
+                        <>
+                          <Loader2 className="animate-spin text-orange-400" size={24} />
+                          <span className="text-sm text-orange-600 font-medium">AI 正在為您擺盤拍照...</span>
+                        </>
+                      ) : (
+                        <button 
+                          onClick={() => handleGenerateImage(idx, recipe.dishName.zh)}
+                          className="flex items-center gap-2 px-4 py-2 bg-white text-orange-600 border border-orange-200 rounded-full shadow-sm hover:bg-orange-50 hover:border-orange-300 transition-colors text-sm font-medium"
+                        >
+                          <ImagePlus size={16} />
+                          <span>AI 生成菜色圖片 (Generate Image)</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4 pb-4 border-b border-gray-100">
                     <h3 className="text-xl font-bold text-gray-900">{getBilingualText(recipe.dishName)}</h3>
                     <div className="flex flex-wrap gap-2 text-xs font-medium">
@@ -296,7 +339,16 @@ export default function RecipeGen({ settings, selectedIngredients }: RecipeGenPr
                   </div>
 
                   <div className="mb-6">
-                    <h4 className="font-semibold text-lg mb-3 border-l-4 border-orange-500 pl-2">烹飪步驟 (Steps)</h4>
+                    <div className="flex items-center justify-between mb-3 border-l-4 border-orange-500 pl-2">
+                       <h4 className="font-semibold text-lg">烹飪步驟 (Steps)</h4>
+                       <button
+                         onClick={() => setActiveCookingRecipe(idx)}
+                         className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-100 text-orange-700 hover:bg-orange-600 hover:text-white rounded-lg text-sm font-bold transition-colors"
+                       >
+                         <Play size={16} className="fill-current" />
+                         <span>煮飯模式 (Cooking Mode)</span>
+                       </button>
+                    </div>
                     <ul className="space-y-4 text-gray-700">
                       {recipe.steps.map((step, i) => (
                         <li key={i} className="flex gap-3 text-sm leading-relaxed bg-gray-50/50 p-3 rounded-lg">
@@ -370,6 +422,16 @@ export default function RecipeGen({ settings, selectedIngredients }: RecipeGenPr
 
           </div>
         </div>
+      )}
+
+      {activeCookingRecipe !== null && data && (
+        <CookingMode
+          recipeName={getBilingualText(data.recipes[activeCookingRecipe].dishName)}
+          steps={data.recipes[activeCookingRecipe].steps}
+          tips={data.recipes[activeCookingRecipe].tips}
+          displayLang={displayLang}
+          onClose={() => setActiveCookingRecipe(null)}
+        />
       )}
     </div>
   );

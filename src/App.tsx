@@ -69,20 +69,32 @@ export default function App() {
     setSelectedIngredients(prev => new Set(prev).add(ingredient.id));
   };
 
+  const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; message: string; onConfirm: () => void } | null>(null);
+
   const handleResetInventory = () => {
-    if (confirm('確定要清空所有已選食材及自訂食材嗎？\nAre you sure you want to clear all selected and custom ingredients?')) {
-      setSelectedIngredients(new Set());
-      setCustomIngredients([]);
-      localStorage.removeItem('km_selectedIngredients');
-      localStorage.removeItem('km_customIngredients');
-    }
+    setConfirmDialog({
+      isOpen: true,
+      message: '確定要清空所有已選食材及自訂食材嗎？\nAre you sure you want to clear all selected and custom ingredients?',
+      onConfirm: () => {
+        setSelectedIngredients(new Set());
+        setCustomIngredients([]);
+        localStorage.removeItem('km_selectedIngredients');
+        localStorage.removeItem('km_customIngredients');
+        setConfirmDialog(null);
+      }
+    });
   };
 
   const handleResetSettings = () => {
-    if (confirm('確定要將所有設定恢復為預設值嗎？\nAre you sure you want to reset all settings to defaults?')) {
-      setSettings(DEFAULT_SETTINGS);
-      localStorage.removeItem('km_settings');
-    }
+    setConfirmDialog({
+      isOpen: true,
+      message: '確定要將所有設定恢復為預設值嗎？\nAre you sure you want to reset all settings to defaults?',
+      onConfirm: () => {
+        setSettings(DEFAULT_SETTINGS);
+        localStorage.removeItem('km_settings');
+        setConfirmDialog(null);
+      }
+    });
   };
 
   const getSelectedIngredientObjects = () => {
@@ -165,6 +177,31 @@ export default function App() {
               >
                繼續 Next
              </button>
+        </div>
+      )}
+
+      {/* Custom Confirm Dialog (since window.confirm behaves differently in iFrames) */}
+      {confirmDialog?.isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 animate-in fade-in">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 animate-in zoom-in-95">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 whitespace-pre-line leading-relaxed">
+              {confirmDialog.message}
+            </h3>
+            <div className="flex gap-3 justify-end mt-8">
+              <button
+                onClick={() => setConfirmDialog(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                取消 Cancel
+              </button>
+              <button
+                onClick={confirmDialog.onConfirm}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm"
+              >
+                確定 Confirm
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -75,7 +75,7 @@ Output EXACTLY as a JSON object with this schema, and nothing else:
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.5-flash-lite",
       contents: systemPrompt,
       config: {
         responseMimeType: "application/json",
@@ -88,6 +88,38 @@ Output EXACTLY as a JSON object with this schema, and nothing else:
     return JSON.parse(text) as GenerationResponse;
   } catch (error) {
     console.error("AI Generation Error", error);
+    throw error;
+  }
+}
+
+export async function generateRecipeImage(dishName: string): Promise<string> {
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: {
+        parts: [
+          {
+            text: `A high quality, appetizing food photography shot of a Chinese dish called "${dishName}". Professional lighting, top-down or slight angle, beautifully plated, photorealistic.`,
+          },
+        ],
+      },
+      config: {
+         imageConfig: {
+            aspectRatio: "16:9"
+         }
+      }
+    });
+    
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData) {
+        const base64EncodeString: string = part.inlineData.data;
+        return `data:image/jpeg;base64,${base64EncodeString}`;
+      }
+    }
+    
+    throw new Error('Image not found in response');
+  } catch (error) {
+    console.error("Image Generation Error", error);
     throw error;
   }
 }
