@@ -75,7 +75,7 @@ Output EXACTLY as a JSON object with this schema, and nothing else:
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-lite",
+      model: "gemini-3-flash-preview",
       contents: systemPrompt,
       config: {
         responseMimeType: "application/json",

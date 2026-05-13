@@ -1,8 +1,5 @@
 # Changelog
 
-## [2026-05-09 17:04 HKT] - Feature Update: Gemini 2.5 Flash Lite
-- ✅ **食譜生成模型升級**: 根據使用者需求，將生成食譜的 AI 模型由 `gemini-3-flash-preview` 更改為更快速輕量的 `gemini-2.5-flash-lite` 模型。
-
 ## [2026-05-09 22:47 HKT] - Bug Fix: Reset Buttons
 - ✅ **修正重設按鈕失效問題**: 由於 iframe 安全性限制會阻擋原生的 `window.confirm`，導致盤點食材與用餐設定頁面的「重設」按鈕點擊無反應。現已替換為自定義的對話框 (Custom Confirm Dialog)，確保重設功能正常運作。
 
