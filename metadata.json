@@ -1,5 +1,6 @@
 {
   "name": "Family Kitchen Manager",
   "description": "今晚食乜餸生成器 - An AI-powered recipe generator and kitchen resource manager with multilingual support.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

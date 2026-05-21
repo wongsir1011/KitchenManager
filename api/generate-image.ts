@@ -1,6 +1,13 @@
 import { GoogleGenAI } from '@google/genai';
 
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const genAI = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+  httpOptions: {
+    headers: {
+      'User-Agent': 'aistudio-build',
+    },
+  },
+});
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
