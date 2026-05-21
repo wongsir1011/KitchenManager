@@ -1,13 +1,24 @@
 import { GoogleGenAI } from '@google/genai';
 
-const genAI = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build',
-    },
-  },
-});
+let genAI: GoogleGenAI | null = null;
+
+function getGenAI() {
+  if (!genAI) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY environment variable is required");
+    }
+    genAI = new GoogleGenAI({
+      apiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        },
+      },
+    });
+  }
+  return genAI;
+}
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
@@ -16,7 +27,8 @@ export default async function handler(req: any, res: any) {
 
   try {
     const { dishName } = req.body;
-    const response = await genAI.models.generateContent({
+    const currentGenAI = getGenAI();
+    const response = await currentGenAI.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: {
         parts: [

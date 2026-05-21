@@ -1,13 +1,24 @@
 import { GoogleGenAI } from '@google/genai';
 
-const genAI = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build',
-    },
-  },
-});
+let genAI: GoogleGenAI | null = null;
+
+function getGenAI() {
+  if (!genAI) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY environment variable is required");
+    }
+    genAI = new GoogleGenAI({
+      apiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        },
+      },
+    });
+  }
+  return genAI;
+}
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
@@ -18,6 +29,7 @@ export default async function handler(req: any, res: any) {
     const { settings, selectedIngredients } = req.body;
     const hasSelectedIngredients = selectedIngredients && selectedIngredients.length > 0;
 
+    const currentGenAI = getGenAI();
     const systemPrompt = `You are a professional chef specializing in Hong Kong style home cooking.
 Your task is to act as a "Family Kitchen Manager" and generate a meal plan.
 
@@ -59,7 +71,7 @@ Output EXACTLY as a JSON object with this schema, and nothing else:
   "shoppingList": [{ "zh": "Item 1", "en": "Item 1", "id": "Item 1" }]
 }`;
 
-    const response = await genAI.models.generateContent({
+    const response = await currentGenAI.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: systemPrompt,
       config: {

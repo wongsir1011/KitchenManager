@@ -1,13 +1,14 @@
 {
   "regions": ["iad1"],
+  "functions": {
+    "api/**/*.ts": {
+      "regions": ["iad1"]
+    }
+  },
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    },
-    {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]
