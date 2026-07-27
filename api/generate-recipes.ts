@@ -20,6 +20,35 @@ function getGenAI() {
   return genAI;
 }
 
+function parseAndSanitizeJSON(rawText: string) {
+  let cleaned = rawText.trim();
+  
+  // Remove markdown code fences if present
+  if (cleaned.startsWith('```')) {
+    cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+  }
+
+  // Direct parse attempt
+  try {
+    return JSON.parse(cleaned);
+  } catch (e1) {
+    // Extract JSON string between the first '{' and the last '}'
+    const firstBrace = cleaned.indexOf('{');
+    const lastBrace = cleaned.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+      let jsonSub = cleaned.substring(firstBrace, lastBrace + 1);
+      try {
+        return JSON.parse(jsonSub);
+      } catch (e2) {
+        // Try removing trailing commas before } or ]
+        jsonSub = jsonSub.replace(/,\s*([}\]])/g, '$1');
+        return JSON.parse(jsonSub);
+      }
+    }
+    throw e1;
+  }
+}
+
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
@@ -82,7 +111,8 @@ Output EXACTLY as a JSON object with this schema, and nothing else:
     const text = response.text;
     if (!text) throw new Error("Empty response from AI");
     
-    res.status(200).json(JSON.parse(text));
+    const parsedData = parseAndSanitizeJSON(text);
+    res.status(200).json(parsedData);
   } catch (error) {
     console.error("AI Generation Error", error);
     res.status(500).json({ error: String(error) });
