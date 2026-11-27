@@ -1,0 +1,44 @@
+name: Project checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Type check, build and start
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+        env:
+          GEMINI_API_KEY: kitchen-manager-build-placeholder
+      - name: Check PWA build and production startup
+        run: |
+          test -s dist/manifest.webmanifest
+          test -s dist/sw.js
+          if grep -rFq -- 'kitchen-manager-build-placeholder' dist; then
+            echo 'The test environment value was included in the build.'
+            exit 1
+          fi
+          npm start > "$RUNNER_TEMP/kitchen-manager.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          curl -fsS --retry 12 --retry-connrefused --retry-delay 1 http://127.0.0.1:3000/ > "$RUNNER_TEMP/kitchen-manager.html"
+          grep -q 'src="/assets/' "$RUNNER_TEMP/kitchen-manager.html"
+          for route in generate-recipes generate-image; do
+            status=$(curl -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:3000/api/$route")
+            test "$status" = 405
+          done

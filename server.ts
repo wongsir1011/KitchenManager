@@ -15,17 +15,18 @@ async function startServer() {
   app.use(cors());
 
   // API Route: Generate Recipes
-  app.post('/api/generate-recipes', async (req, res) => {
+  app.all('/api/generate-recipes', async (req, res) => {
     await generateRecipesHandler(req, res);
   });
 
   // API Route: Generate Image
-  app.post('/api/generate-image', async (req, res) => {
+  app.all('/api/generate-image', async (req, res) => {
     await generateImageHandler(req, res);
   });
 
   // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
+  const isProduction = process.argv.includes('--production') || process.env.NODE_ENV === 'production';
+  if (!isProduction) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
