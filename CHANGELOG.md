@@ -1,5 +1,11 @@
 # Changelog
 
+## [2026-11-28 HKT] - 維護及建置
+
+- 補齊 npm 鎖檔的跨平台相依套件，加入 GitHub Actions 建置及啟動檢查。
+- `npm run dev` 及 `npm start` 支援載入本機 `.env`。`npm start` 直接提供已建置的網站。本機 Express 與 Vercel 對兩項生成 API 使用同一組請求方法檢查。
+- Gemini 金鑰由伺服器讀取，移除 Vite 前端建置的金鑰設定。現行的 Express／Vercel API 架構以 [PROJECT.md](./PROJECT.md) 為準。
+
 ## [2026-05-09 22:47 HKT] - Bug Fix: Reset Buttons
 - ✅ **修正重設按鈕失效問題**: 由於 iframe 安全性限制會阻擋原生的 `window.confirm`，導致盤點食材與用餐設定頁面的「重設」按鈕點擊無反應。現已替換為自定義的對話框 (Custom Confirm Dialog)，確保重設功能正常運作。
 
